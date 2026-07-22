@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Netflix Data Analysis Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --bg: #0b0f17;
+    --card-bg: #141c2b;
+    --card-border: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent-red: #e50914;
+    --accent-cyan: #38bdf8;
+    --accent-purple: #c084fc;
+    --font-sans: 'Plus Jakarta Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    padding-bottom: 60px;
+  }
+
+  header {
+    padding: 50px 0 30px;
+    border-bottom: 1px solid var(--card-border);
+    background: radial-gradient(circle at top right, rgba(229, 9, 20, 0.12), transparent 50%);
+  }
+  .container { max-width: 1150px; margin: 0 auto; padding: 0 24px; }
+  
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(229, 9, 20, 0.1); border: 1px solid var(--accent-red);
+    color: var(--accent-red); padding: 6px 14px; border-radius: 99px;
+    font-size: 12px; font-family: var(--font-mono); text-transform: uppercase;
+  }
+
+  h1 { font-size: 38px; font-weight: 800; margin: 16px 0 8px; }
+  p.subtitle { color: var(--text-muted); font-size: 15px; margin-bottom: 20px; }
+
+  .section-title { font-size: 18px; font-weight: 700; margin: 36px 0 16px; display: flex; align-items: center; gap: 10px; }
+  .section-title::before { content: ''; width: 4px; height: 18px; background: var(--accent-red); border-radius: 2px; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .kpi-card {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    padding: 20px; border-radius: 12px;
+  }
+  .kpi-val { font-size: 28px; font-weight: 800; color: #fff; }
+  .kpi-val.highlight { color: var(--accent-red); }
+  .kpi-lbl { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-family: var(--font-mono); text-transform: uppercase; }
+
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; margin-top: 16px; }
+  .chart-card {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    padding: 20px; border-radius: 14px;
+  }
+  .chart-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--text-main); }
+  .chart-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+  .chart-container { position: relative; height: 250px; width: 100%; }
+
+  .query-box { background: var(--card-bg); border: 1px solid var(--card-border); padding: 20px; border-radius: 14px; margin-top: 20px; }
+  .query-box h3 { font-size: 15px; font-weight: 600; color: var(--accent-cyan); margin-bottom: 12px; }
+  .query-box ul { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+  .query-box li {
+    background: rgba(255,255,255,0.03); border: 1px solid var(--card-border);
+    padding: 8px 12px; border-radius: 6px; font-size: 13px;
+  }
+
+  footer { text-align: center; margin-top: 50px; color: var(--text-muted); font-size: 12px; font-family: var(--font-mono); }
+
+  @media (max-width: 768px) { .chart-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="badge">Data Analysis Case File</div>
+    <h1>Netflix Content Catalog Analysis</h1>
+    <p class="subtitle">An EDA dashboard built using Pandas on 8,800+ Netflix titles.</p>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="section-title">Overview Metrics</div>
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-val highlight" id="kpi-total">0</div><div class="kpi-lbl">Total Catalog Titles</div></div>
+    <div class="kpi-card"><div class="kpi-val" id="kpi-movies">0</div><div class="kpi-lbl">Movies Count</div></div>
+    <div class="kpi-card"><div class="kpi-val" id="kpi-tv">0</div><div class="kpi-lbl">TV Shows Count</div></div>
+    <div class="kpi-card"><div class="kpi-val" id="kpi-runtime">0</div><div class="kpi-lbl">Avg. Movie Runtime</div></div>
+  </div>
+
+  <div class="section-title">Notebook Query Highlights</div>
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-val" id="q-oldest">0</div><div class="kpi-lbl">Oldest Release Year</div></div>
+    <div class="kpi-card"><div class="kpi-val" id="q-latest">0</div><div class="kpi-lbl">Latest Release Year</div></div>
+    <div class="kpi-card"><div class="kpi-val" id="q-rajiv">0</div><div class="kpi-lbl">Rajiv Chilaka Titles</div></div>
+    <div class="kpi-card"><div class="kpi-val" id="q-marcus">0</div><div class="kpi-lbl">Marcus Raboy Titles</div></div>
+  </div>
+
+  <div class="section-title">Visual Explorations</div>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Movie vs TV Show Distribution</h3>
+      <p>Breakdown of catalog content format ratio.</p>
+      <div class="chart-container"><canvas id="typeChart"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Top 10 Content Producing Countries</h3>
+      <p>Dominant national origins across titles.</p>
+      <div class="chart-container"><canvas id="countryChart"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Top Categories & Genres</h3>
+      <p>Most frequently occurring genre tags.</p>
+      <div class="chart-container"><canvas id="genreChart"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Most Prolific Directors</h3>
+      <p>Top directors with highest content count.</p>
+      <div class="chart-container"><canvas id="directorChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="query-box">
+    <h3>🎬 Titles Starring David Attenborough</h3>
+    <ul id="david-list"></ul>
+  </div>
+
+</main>
+
+<footer>Dataset Analysis generated directly via Python Pandas Notebook</footer>
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  try {
+    const DATA = {"total_titles": 8807, "total_movies": 6131, "total_tv": 2676, "avg_movie_duration": 99.5, "oldest_year": 1925, "latest_year": 2021, "rajiv_chilaka_count": 19, "marcus_raboy_count": 16, "david_attenborough_titles": ["Breaking Boundaries: The Science Of Our Planet", "Life in Color with David Attenborough", "David Attenborough: A Life on Our Planet", "Our Planet - Behind The Scenes", "Our Planet", "Africa", "Blue Planet II", "Frozen Planet", "Frozen Planet: On Thin Ice", "Frozen Planet: The Epic Journey", "Life on Location", "Life Story", "Nature: Raising the Dinosaur Giant", "Nature's Great Events (2009)", "Nature's Great Events: Diaries", "Planet Earth II", "Planet Earth: The Complete Collection", "The Blue Planet: A Natural History of the Oceans", "The Hunt", "The Making of Frozen Planet"], "type_counts": {"Movie": 6131, "TV Show": 2676}, "top_countries": {"United States": 2818, "India": 972, "United Kingdom": 419, "Japan": 245, "South Korea": 199, "Canada": 181, "Spain": 145, "France": 124, "Mexico": 110, "Egypt": 106}, "top_genres": {"International Movies": 2752, "Dramas": 2427, "Comedies": 1674, "International TV Shows": 1351, "Documentaries": 869, "Action & Adventure": 859, "TV Dramas": 763, "Independent Movies": 756}, "top_directors": {"Rajiv Chilaka": 19, "Ra\u00fal Campos, Jan Suter": 18, "Marcus Raboy": 16, "Suhas Kadav": 16, "Jay Karas": 14, "Cathy Garcia-Molina": 13, "Martin Scorsese": 12, "Youssef Chahine": 12}};
+
+    document.getElementById('kpi-total').innerText = DATA.total_titles.toLocaleString();
+    document.getElementById('kpi-movies').innerText = DATA.total_movies.toLocaleString();
+    document.getElementById('kpi-tv').innerText = DATA.total_tv.toLocaleString();
+    document.getElementById('kpi-runtime').innerText = DATA.avg_movie_duration + ' min';
+
+    document.getElementById('q-oldest').innerText = DATA.oldest_year;
+    document.getElementById('q-latest').innerText = DATA.latest_year;
+    document.getElementById('q-rajiv').innerText = DATA.rajiv_chilaka_count;
+    document.getElementById('q-marcus').innerText = DATA.marcus_raboy_count;
+
+    const davidUl = document.getElementById('david-list');
+    DATA.david_attenborough_titles.forEach(t => {
+      const li = document.createElement('li');
+      li.innerText = '• ' + t;
+      davidUl.appendChild(li);
+    });
+
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+
+    // 1. Donut
+    new Chart(document.getElementById('typeChart'), {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(DATA.type_counts),
+        datasets: [{ data: Object.values(DATA.type_counts), backgroundColor: ['#e50914', '#38bdf8'], borderWidth: 0 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    // 2. Countries
+    new Chart(document.getElementById('countryChart'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(DATA.top_countries),
+        datasets: [{ data: Object.values(DATA.top_countries), backgroundColor: '#e50914', borderRadius: 4 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } } }
+    });
+
+    // 3. Genres
+    new Chart(document.getElementById('genreChart'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(DATA.top_genres),
+        datasets: [{ data: Object.values(DATA.top_genres), backgroundColor: '#c084fc', borderRadius: 4 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+
+    // 4. Directors
+    new Chart(document.getElementById('directorChart'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(DATA.top_directors),
+        datasets: [{ data: Object.values(DATA.top_directors), backgroundColor: '#38bdf8', borderRadius: 4 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } } }
+    });
+
+  } catch (err) {
+    console.error("Dashboard error:", err);
+  }
+});
+</script>
+
+</body>
+</html>
